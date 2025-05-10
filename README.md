@@ -82,4 +82,4 @@ Trivia API
 Used to dynamically generate quizzes by:
 - Fetching multiple-choice/true-false questions based on topics, difficulty, and number of questions
 
-Deployed Here: https://studybuddy-0vs4.onrender.com/
+Deployed Here: https://studybuddy-3a2f.onrender.com
