@@ -62,7 +62,6 @@ We used MongoDB via PyMongo to store:
 - sessions – Scheduled session information
 - resources – Files and links shared in study groups
 - comments – Comments on resources and sessions
-- quizzes (optional) – Quiz attempts and user scores
 
 Database Operations:
 
@@ -70,7 +69,6 @@ Database Operations:
 - Scheduling a session → inserts into sessions
 - Uploading a resource → inserts into resources
 - Posting a comment → inserts into comments
-- Taking a quiz → fetches from API; may log into quizzes
 
 API:
 
@@ -79,6 +77,5 @@ Used to dynamically generate quizzes by:
 - Fetching multiple-choice questions based on topics
 - Evaluating submitted answers
 - Providing instant results to users
-
 
 Deployed Here: https://studybuddy-3a2f.onrender.com
