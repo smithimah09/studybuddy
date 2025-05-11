@@ -1,17 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-4">
-  <h2>🧠 Take a Quiz!</h2>
+<div class="max-w-4xl mx-auto p-6">
+  <div class="bg-white shadow-lg rounded-lg p-6 mb-8">
+    <h2 class="text-3xl font-bold text-indigo-600 mb-4 flex items-center">🧠 Take a Quiz!</h2>
+    <p class="text-gray-600 mb-4">Test your knowledge with our customizable quizzes. Select your preferences below:</p>
 
-  <form method="POST" class="mb-4">
-    <div class="mb-2">
-      <label class="form-label">Number of Questions:</label>
-      <input class="form-control" type="number" name="amount" value="5" min="1" max="50" required>
-    </div>
+  <form method="POST" class="mb-4" id="quiz-form" onsubmit="return validateForm()">
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Number of Questions:</label>
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="number" name="amount" value="5" min="1" max="50" id="question-amount" required>
+      </div>
 
-    <div class="mb-2">
-      <label class="form-label">Category:</label>
-      <select class="form-select" name="category">
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Category:</label>
+        <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="category">
         <option value="">Any Category</option>
         <option value="9">General Knowledge</option>
         <option value="10">Entertainment: Books</option>
@@ -38,45 +41,300 @@
         <option value="31">Entertainment: Japanese Anime & Manga</option>
         <option value="32">Entertainment: Cartoon & Animations</option>
       </select>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Difficulty:</label>
+        <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="difficulty">
+          <option value="">Any</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Type:</label>
+        <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" name="type">
+          <option value="">Any</option>
+          <option value="multiple">Multiple Choice</option>
+          <option value="boolean">True / False</option>
+        </select>
+      </div>
     </div>
 
-    <div class="mb-2">
-      <label class="form-label">Difficulty:</label>
-      <select class="form-select" name="difficulty">
-        <option value="">Any</option>
-        <option value="easy">Easy</option>
-        <option value="medium">Medium</option>
-        <option value="hard">Hard</option>
-      </select>
+    <div id="form-errors" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center font-medium"></div>
+    <div class="text-center mt-6">
+      <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-8 rounded-lg shadow-lg transition duration-300" type="submit">Start Quiz</button>
     </div>
-
-    <div class="mb-2">
-      <label class="form-label">Type:</label>
-      <select class="form-select" name="type">
-        <option value="">Any</option>
-        <option value="multiple">Multiple Choice</option>
-        <option value="boolean">True / False</option>
-      </select>
-    </div>
-
-    <button class="btn btn-primary mt-2" type="submit">Start Quiz</button>
   </form>
 
   {% if questions %}
-  <hr>
-  <h3>Questions:</h3>
-  <ul class="list-group">
-    {% for q in questions %}
-    <li class="list-group-item">
-      <strong>{{ q.question|safe }}</strong><br>
-      <ul>
-        {% for answer in (q.incorrect_answers + [q.correct_answer]) | sort %}
-        <li>{{ answer|safe }}</li>
-        {% endfor %}
-      </ul>
-    </li>
-    {% endfor %}
-  </ul>
+  <div id="quiz-container" class="mt-8 bg-white shadow-lg rounded-lg p-6" data-question-count="{{ questions|length }}">
+    <h3 class="text-2xl font-bold text-indigo-600 mb-4">Quiz Time!</h3>
+    <div id="quiz-progress" class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+      <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+    </div>
+    
+    <!-- Questions container -->
+    <div id="questions-container">
+      {% for q in questions %}
+      <div class="question-card bg-white p-6 rounded-lg shadow-md" id="question-{{ loop.index0 }}" {% if loop.index0 > 0 %}style="display: none;"{% endif %} data-correct-answer="{{ q.correct_answer|safe }}" data-type="{{ q.type }}">
+        <div class="mb-4">
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Question {{ loop.index }} of {{ questions|length }}</span>
+        </div>
+        <h4 class="text-xl font-semibold mb-4">{{ q.question|safe }}</h4>
+        <div class="space-y-3 mb-6">
+          <!-- Answers container -->
+          <div class="answers-container space-y-4">
+            <!-- This will be populated by JavaScript -->
+          </div>
+        </div>
+        <div class="result-feedback hidden"></div>
+        {% if not loop.last %}
+        <div class="text-right mt-4">
+          <button class="next-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded hidden" 
+                  data-current-index="{{ loop.index0 }}" data-next-index="{{ loop.index }}">
+            Next Question
+          </button>
+        </div>
+        {% else %}
+        <div class="text-right mt-4">
+          <button class="finish-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded hidden">
+            Finish Quiz
+          </button>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div id="quiz-results" class="hidden text-center py-6">
+      <h3 class="text-2xl font-bold text-indigo-600 mb-4">Quiz Completed!</h3>
+      <p class="text-xl mb-4">You scored: <span id="score">0</span> out of <span id="total-questions">{{ questions|length }}</span></p>
+      <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded" 
+              onclick="resetQuiz()">
+        Take Another Quiz
+      </button>
+    </div>
+  </div>
   {% endif %}
 </div>
-{% endblock %}
+
+{% block scripts %}
+<script>
+  let currentScore = 0;
+  
+  // Initialize when DOM is loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    // Set up the answers for each question
+    setupQuestionAnswers();
+    // Set up the progress bar
+    updateProgressBar();
+    // Add event listeners for next buttons
+    setupButtonListeners();
+  });
+  
+  // Setup event listeners for navigation buttons
+  function setupButtonListeners() {
+    // Next question buttons
+    document.querySelectorAll('.next-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const currentIndex = parseInt(this.getAttribute('data-current-index'));
+        const nextIndex = parseInt(this.getAttribute('data-next-index'));
+        showNextQuestion(currentIndex, nextIndex);
+      });
+    });
+    
+    // Finish quiz buttons
+    document.querySelectorAll('.finish-btn').forEach(button => {
+      button.addEventListener('click', showResults);
+    });
+  }
+  
+  // Validate form before submission
+  function validateForm() {
+    const amountField = document.getElementById('question-amount');
+    const categoryField = document.querySelector('select[name="category"]');
+    const difficultyField = document.querySelector('select[name="difficulty"]');
+    const typeField = document.querySelector('select[name="type"]');
+    const formErrors = document.getElementById('form-errors');
+    
+    // Reset error message
+    formErrors.classList.add('hidden');
+    formErrors.textContent = '';
+    
+    // Validate amount
+    if (!amountField.value || parseInt(amountField.value) < 1) {
+      formErrors.textContent = 'Please select a valid number of questions';
+      formErrors.classList.remove('hidden');
+      return false;
+    }
+    
+    return true;
+  }
+  
+  // Setup answers for all questions
+  function setupQuestionAnswers() {
+    // Find all question cards
+    const questionCards = document.querySelectorAll('.question-card');
+    
+    questionCards.forEach((card) => {
+      const questionId = card.id;
+      const answersContainer = card.querySelector('.answers-container');
+      
+      // Get question data attributes
+      const correctAnswer = card.getAttribute('data-correct-answer');
+      const questionType = card.getAttribute('data-type');
+      
+      if (correctAnswer && answersContainer) {
+        // Get the question index
+        const questionIndex = parseInt(questionId.split('-')[1]);
+        
+        // Get question data from the server
+        fetch(`/quiz/get_question_data?index=${questionIndex}`)
+          .then(response => response.json())
+          .then(questionData => {
+            if (!questionData || !questionData.correct_answer) return;
+            
+            // Create answer options
+            let allAnswers = [];
+            
+            // For true/false questions, just use those options
+            if (questionData.type === 'boolean') {
+              allAnswers = ['True', 'False'];
+            } else {
+              // For multiple choice, combine and shuffle
+              allAnswers = [...questionData.incorrect_answers, questionData.correct_answer];
+              allAnswers = shuffleArray(allAnswers);
+            }
+            
+            // Add the answers to the container
+            allAnswers.forEach(answer => {
+              const answerOption = document.createElement('div');
+              answerOption.className = 'answer-option';
+              
+              const button = document.createElement('button');
+              button.className = 'w-full text-left px-5 py-4 border border-gray-300 rounded-lg hover:bg-indigo-50 transition-colors font-medium text-gray-700 shadow-sm';
+              button.innerHTML = answer;
+              button.onclick = function() {
+                checkAnswer(this, questionData.correct_answer, answer);
+              };
+              
+              answerOption.appendChild(button);
+              answersContainer.appendChild(answerOption);
+            });
+          })
+          .catch(error => {
+            console.error('Error fetching question data:', error);
+          });
+      }
+    });
+  }
+  
+  // Function to shuffle array
+  function shuffleArray(array) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  }
+  
+  function checkAnswer(buttonElement, correctAnswer, selectedAnswer) {
+    try {
+      // Disable all answer buttons in this question card
+      const questionCard = buttonElement.closest('.question-card');
+      const allButtons = questionCard.querySelectorAll('.answer-option button');
+      
+      allButtons.forEach(btn => {
+        btn.disabled = true;
+        
+        // Get the text content with any HTML entities decoded
+        const btnText = btn.textContent.trim();
+        
+        // Highlight the correct answer and the selected answer
+        if (btnText === correctAnswer) {
+          btn.classList.remove('hover:bg-indigo-50');
+          btn.classList.add('bg-green-100', 'border-green-500');
+        }
+        
+        if (btn === buttonElement && selectedAnswer !== correctAnswer) {
+          btn.classList.remove('hover:bg-indigo-50');
+          btn.classList.add('bg-red-100', 'border-red-500');
+        }
+      });
+      
+      // Show feedback
+      const feedbackElement = questionCard.querySelector('.result-feedback');
+      feedbackElement.classList.remove('hidden');
+      
+      if (selectedAnswer === correctAnswer) {
+        currentScore++;
+        feedbackElement.innerHTML = '<div class="p-4 mb-4 text-green-800 border-l-4 border-green-500 bg-green-50">Correct! Well done!</div>';
+      } else {
+        feedbackElement.innerHTML = `<div class="p-4 mb-4 text-red-800 border-l-4 border-red-500 bg-red-50">Incorrect. The correct answer is: ${correctAnswer}</div>`;
+      }
+      
+      // Show next button or finish button
+      const nextBtn = questionCard.querySelector('.next-btn');
+      const finishBtn = questionCard.querySelector('.finish-btn');
+      
+      if (nextBtn) nextBtn.classList.remove('hidden');
+      if (finishBtn) finishBtn.classList.remove('hidden');
+      
+      // Update progress bar
+      updateProgressBar();
+    } catch (error) {
+      console.error('Error in checkAnswer:', error);
+    }
+  }
+  
+  function showNextQuestion(currentIndex, nextIndex) {
+    // Hide current question
+    const currentCard = document.getElementById(`question-${currentIndex}`);
+    if (currentCard) {
+      currentCard.style.display = 'none';
+    }
+    
+    // Show next question
+    const nextCard = document.getElementById(`question-${nextIndex}`);
+    if (nextCard) {
+      nextCard.style.display = 'block';
+      updateProgressBar();
+    } else {
+      showResults();
+    }
+  }
+  
+  function updateProgressBar() {
+    const totalQuestions = document.querySelectorAll('.question-card').length;
+    const answeredQuestions = document.querySelectorAll('.result-feedback:not(.hidden)').length;
+    const progressPercentage = totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
+    
+    document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
+  }
+  
+  function showResults() {
+    // Clear questions container
+    document.getElementById('questions-container').innerHTML = '';
+    
+    // Show results
+    const resultsElement = document.getElementById('quiz-results');
+    resultsElement.classList.remove('hidden');
+    
+    // Update score display
+    document.getElementById('score').textContent = currentScore;
+  }
+  
+  function resetQuiz() {
+    // Redirect to quiz home to restart
+    window.location.href = "{{ url_for('quiz.quiz_home') }}";
+  }
+  
+  // Initialize progress bar
+  updateProgressBar();
+</script>
+{% endblock scripts %}
+{% endblock content %}
