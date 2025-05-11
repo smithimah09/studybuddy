@@ -1,13 +1,9 @@
-# studybuddy
-
 Project Title: StudyBuddy
-
 Team Members:
-- Smithi Mahendran
-- Manasa Vinod Kumar
 - Neel Mokaria
 - Karan Agarwal
-
+- Smithi Mahendran
+- Manasa Vinod Kumar
 
 Overview:
 StudyBuddy is a collaborative web application built with Flask that helps students enhance their learning experience by forming study groups, scheduling sessions, sharing materials, and taking topic-based quizzes. It encourages collaborative learning through real-time interaction and knowledge checks.
@@ -24,7 +20,7 @@ Forms:
   Fields – username, email, password
 
 - Login Form
-  Fields – username, password
+  Fields – email, password
 
 - Create Study Group Form
   Fields – course name, description, tags
@@ -33,7 +29,7 @@ Forms:
   Fields – date/time, Zoom link, group name
 
 - Trivia Quiz Form
-  Fields – topic selection, number of questions, difficulty
+  Fields – topic selection, number of questions
 
 Blueprints:
 
@@ -55,7 +51,7 @@ Features for Logged-In Users:
 - Schedule and join study sessions (e.g., via Zoom)
 - Upload, view, and download study resources
 - Comment on sessions and resources
-- Take quizzes on chosen topics
+- Take quizzes on chosen topics with instant feedback
 
 Database:
 
@@ -66,7 +62,7 @@ We used MongoDB via PyMongo to store:
 - sessions – Scheduled session information
 - resources – Files and links shared in study groups
 - comments – Comments on resources and sessions
-- quizzes – Quiz attempts to test user knowledge
+- quizzes (optional) – Quiz attempts and user scores
 
 Database Operations:
 
@@ -74,12 +70,15 @@ Database Operations:
 - Scheduling a session → inserts into sessions
 - Uploading a resource → inserts into resources
 - Posting a comment → inserts into comments
-- Taking a quiz → fetches from API
+- Taking a quiz → fetches from API; may log into quizzes
 
 API:
 
 Trivia API
 Used to dynamically generate quizzes by:
-- Fetching multiple-choice/true-false questions based on topics, difficulty, and number of questions
+- Fetching multiple-choice questions based on topics
+- Evaluating submitted answers
+- Providing instant results to users
+
 
 Deployed Here: https://studybuddy-3a2f.onrender.com
