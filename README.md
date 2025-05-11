@@ -1,4 +1,5 @@
 Project Title: StudyBuddy
+
 Team Members:
 - Smithi Mahendran
 - Manasa Vinod Kumar
