@@ -1,9 +1,10 @@
 Project Title: StudyBuddy
 Team Members:
-- Neel Mokaria
-- Karan Agarwal
 - Smithi Mahendran
 - Manasa Vinod Kumar
+- Neel Mokaria
+- Karan Agarwal
+
 
 Overview:
 StudyBuddy is a collaborative web application built with Flask that helps students enhance their learning experience by forming study groups, scheduling sessions, sharing materials, and taking topic-based quizzes. It encourages collaborative learning through real-time interaction and knowledge checks.
